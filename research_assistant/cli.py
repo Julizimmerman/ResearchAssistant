@@ -7,7 +7,6 @@ from __future__ import annotations
 import argparse
 import logging
 import warnings
-
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 from dotenv import load_dotenv
@@ -28,9 +27,6 @@ from research_assistant.ui import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-# ── Argument parsing ─────────────────────────────────────────────────
 
 
 def parse_args() -> argparse.Namespace:
@@ -74,21 +70,18 @@ def _configure_logging(verbose: bool) -> None:
     )
 
 
-# ── Main ─────────────────────────────────────────────────────────────
-
-
 def main() -> int:
     """Run the research assistant pipeline. Returns exit code."""
     load_dotenv()
     args = parse_args()
     _configure_logging(args.verbose)
 
-    # ── Load settings ────────────────────────────────────────────────
+    # Load settings 
     settings = Settings()
     if args.max_subtopics is not None:
         settings.MAX_SUBTOPICS = args.max_subtopics
 
-    # ── Validate Azure credentials (unless mock mode) ──────────────
+    # Validate Azure credentials (unless mock mode)
     if not args.mock:
         missing: list[str] = []
         if not settings.AZURE_OPENAI_API_KEY:
@@ -103,7 +96,7 @@ def main() -> int:
             )
             return 1
 
-    # ── Welcome & topic ──────────────────────────────────────────────
+    # Welcome & topic 
     display_welcome()
 
     if args.mock:
@@ -111,7 +104,7 @@ def main() -> int:
 
     topic = prompt_for_topic()
 
-    # ── Run pipeline via Supervisor ──────────────────────────────────
+    # Run pipeline via Supervisor
     router = ModelRouter(settings, mock_mode=args.mock)
     supervisor = SupervisorAgent(router)
 
@@ -123,7 +116,7 @@ def main() -> int:
         on_spinner=create_spinner,
     )
 
-    # ── Display results ──────────────────────────────────────────────
+    # Display results
     if report:
         display_final_report(report)
 
