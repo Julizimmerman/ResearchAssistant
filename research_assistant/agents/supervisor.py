@@ -35,8 +35,6 @@ class SupervisorAgent:
         self._router = router
         logger.info("Supervisor Agent initialised")
 
-    # ── Public API ───────────────────────────────────────────────────
-
     def run(
         self,
         topic: str,
@@ -73,7 +71,6 @@ class SupervisorAgent:
         config = {"configurable": {"thread_id": thread_id}}
         start_time = time.monotonic()
 
-        # ── Phase 1: Investigation ───────────────────────────────────
         logger.info("Supervisor: starting Investigation phase — topic: %s", topic)
         on_status("Let me look into that for you...")
         latest_state: dict[str, Any] = {}
@@ -99,7 +96,6 @@ class SupervisorAgent:
         )
         on_status(f"I identified [bold]{num_subtopics}[/bold] subtopics worth exploring.")
 
-        # ── Phase 2: Human Review (interrupt) ────────────────────────
         snapshot = compiled_graph.get_state(config)
 
         if snapshot.next:
@@ -111,7 +107,6 @@ class SupervisorAgent:
 
             human_decision: HumanDecision = collect_human_input(subtopics)
 
-            # ── Phase 3: Curation ────────────────────────────────────
             active_count = len(human_decision.all_active_subtopics)
             on_status(
                 f"Analysing {active_count} subtopic(s) in depth and writing your report..."
@@ -127,7 +122,6 @@ class SupervisorAgent:
 
             logger.info("Supervisor: handing off to Reporter Agent...")
 
-        # ── Phase 4: Done ────────────────────────────────────────────
         report: FinalReport | None = latest_state.get("final_report")
         elapsed = time.monotonic() - start_time
 
