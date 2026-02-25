@@ -25,9 +25,6 @@ from research_assistant.state import ResearchState
 
 logger = logging.getLogger(__name__)
 
-# ── Agent registry ───────────────────────────────────────────────────
-# Populated once via ``initialize_agents()`` before the graph runs.
-
 _agents: dict[str, Any] = {}
 
 
@@ -46,9 +43,6 @@ def initialize_agents(router: ModelRouter) -> None:
 def get_agent(name: str) -> Any:
     """Retrieve a registered agent by name."""
     return _agents[name]
-
-
-# ── Node functions ───────────────────────────────────────────────────
 
 
 def investigate_node(state: ResearchState) -> dict[str, Any]:
@@ -94,9 +88,6 @@ def report_node(state: ResearchState) -> dict[str, Any]:
         topic=state["topic"],
         curated_analyses=state["curated_analyses"],
     )
-
-
-# ── Graph construction ───────────────────────────────────────────────
 
 
 def build_graph() -> tuple[CompiledStateGraph, MemorySaver]:
