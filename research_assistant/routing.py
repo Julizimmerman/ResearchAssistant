@@ -46,8 +46,6 @@ class ModelRouter:
             Complexity.HIGH: settings.AZURE_OPENAI_DEPLOYMENT_EXPENSIVE,
         }
 
-    # ── Public API ───────────────────────────────────────────────────
-
     def get_model_name(self, agent_name: str) -> str:
         """Return the deployment name assigned to *agent_name*."""
         complexity = AGENT_COMPLEXITY.get(agent_name, Complexity.LOW)
