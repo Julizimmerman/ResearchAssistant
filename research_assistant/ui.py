@@ -343,11 +343,19 @@ def display_final_report(report: FinalReport) -> None:
     console.print()
 
 
-def display_session_complete(elapsed_seconds: float) -> None:
+def display_session_complete(
+    report_path: str | None,
+    elapsed_seconds: float,
+) -> None:
     """Show a friendly wrap-up message."""
+    parts: list[str] = []
+    if report_path:
+        parts.append(f"Report saved to [bold]{report_path}[/bold]")
+    parts.append(f"Completed in {elapsed_seconds:.1f}s")
+
     console.print(
         Panel(
-            f"Completed in {elapsed_seconds:.1f}s",
+            "\n".join(parts),
             title="[bold blue]All done![/bold blue]",
             border_style="blue",
             padding=(1, 2),
