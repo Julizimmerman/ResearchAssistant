@@ -30,10 +30,6 @@ class Settings(BaseSettings):
         default="gpt-4o",
         description="Azure deployment name for complex/expensive tasks",
     )
-    SQLITE_CACHE_PATH: str = Field(
-        default=".llm_cache.db",
-        description="File path for the SQLite LLM response cache",
-    )
     MAX_SUBTOPICS: int = Field(
         default=7,
         ge=1,

@@ -7,7 +7,6 @@ calls anywhere in the codebase.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import Any, Generator
 
 from rich.console import Console, Group
@@ -173,7 +172,6 @@ def collect_human_input(subtopics: list[Subtopic]) -> HumanDecision:
     modifications: dict[int, str] = {}  # id → new name
     added: list[Subtopic] = []
     next_id = max(s.id for s in subtopics) + 1
-    first_round = True
 
     while True:
         try:
@@ -201,8 +199,8 @@ def collect_human_input(subtopics: list[Subtopic]) -> HumanDecision:
                 console.print("[green]All subtopics approved.[/green]")
 
             elif cmd.action == "approve":
-                warnings = validate_ids(cmd.targets, valid_ids)
-                for w in warnings:
+                id_warnings = validate_ids(cmd.targets, valid_ids)
+                for w in id_warnings:
                     console.print(f"[yellow]{w}[/yellow]")
                 approved_names = []
                 for tid in cmd.targets:
@@ -214,8 +212,8 @@ def collect_human_input(subtopics: list[Subtopic]) -> HumanDecision:
                     console.print(f"[green]Approved: {', '.join(approved_names)}[/green]")
 
             elif cmd.action == "reject":
-                warnings = validate_ids(cmd.targets, valid_ids)
-                for w in warnings:
+                id_warnings = validate_ids(cmd.targets, valid_ids)
+                for w in id_warnings:
                     console.print(f"[yellow]{w}[/yellow]")
                 rejected_names = []
                 for tid in cmd.targets:
@@ -343,27 +341,6 @@ def display_final_report(report: FinalReport) -> None:
 
     console.print(Group(*_renderables()))
     console.print()
-
-
-def _fallback_markdown(report: FinalReport) -> str:
-    """Build Markdown from structured fields when raw_markdown is empty."""
-    lines = [
-        f"# {report.title}",
-        "",
-        "## Executive Summary",
-        "",
-        report.executive_summary,
-        "",
-    ]
-    for section in report.sections:
-        lines.extend([f"## {section.heading}", "", section.content, ""])
-    lines.extend(["## Conclusion", "", report.conclusion, ""])
-    if report.references:
-        lines.append("## References")
-        lines.append("")
-        for ref in report.references:
-            lines.append(f"- {ref}")
-    return "\n".join(lines)
 
 
 def display_session_complete(elapsed_seconds: float) -> None:

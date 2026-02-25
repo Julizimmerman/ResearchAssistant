@@ -38,7 +38,6 @@ class SupervisorAgent:
     def run(
         self,
         topic: str,
-        mock_mode: bool,
         collect_human_input: Any,
         on_status: Any,
         on_spinner: Any,
@@ -49,8 +48,6 @@ class SupervisorAgent:
         ----------
         topic:
             The research topic entered by the user.
-        mock_mode:
-            Whether to run with mock LLM responses.
         collect_human_input:
             Callable ``(subtopics) -> HumanDecision`` — provided by the CLI
             so the Supervisor never imports UI code directly.
@@ -79,7 +76,6 @@ class SupervisorAgent:
             for event in compiled_graph.stream(
                 {
                     "topic": topic,
-                    "mock_mode": mock_mode,
                     "subtopics": [],
                     "human_decision": None,
                     "curated_analyses": [],

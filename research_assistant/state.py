@@ -27,4 +27,3 @@ class ResearchState(TypedDict):
     human_decision: HumanDecision | None
     curated_analyses: Annotated[list[CuratedAnalysis], add]
     final_report: FinalReport | None
-    mock_mode: bool

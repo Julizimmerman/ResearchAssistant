@@ -34,15 +34,6 @@ User enters topic
 | **Curator** | `agents/curator.py` | Deep analysis per subtopic — key findings, pros/cons, connections, gaps. Runs subtopics in parallel | `gpt-4o` |
 | **Reporter** | `agents/reporter.py` | Synthesises curated analyses into a polished original Markdown report | `gpt-4o` |
 
-## Key Design Decisions
-
-- **Explicit SupervisorAgent**: `SupervisorAgent` owns the full pipeline lifecycle — initialising agents, building the graph, and managing the stream → interrupt → resume cycle. The CLI only handles user I/O and delegates all orchestration to the Supervisor.
-- **graph.py as graph definition only**: `graph.py` defines the LangGraph `StateGraph` topology (nodes, edges, `build_graph()`). Execution logic lives in the Supervisor, not in the graph module.
-- **`interrupt()`-based Human-in-the-Loop**: LangGraph's native `interrupt()` pauses the graph at the human review node, checkpoints state to `MemorySaver`, and resumes via `Command(resume=...)`. The Supervisor mediates this cycle; the CLI contributes only the UI callback.
-- **Structured Outputs**: All inter-agent communication uses Pydantic v2 models with `with_structured_output()`, ensuring type-safe, validated data at every boundary.
-- **Complexity-Aware Routing**: `ModelRouter` maps each agent's complexity level to the appropriate Azure OpenAI deployment — cheap model for simple tasks, powerful model for reasoning-heavy ones.
-- **Parallel Curation**: `CuratorAgent` uses `ThreadPoolExecutor` to analyse all approved subtopics concurrently, minimising wall-clock time.
-- **Retry with backoff**: `BaseAgent._call_structured_llm` wraps every LLM call with Tenacity (3 attempts, exponential backoff) to handle transient API errors transparently.
 
 ## Setup
 
@@ -113,30 +104,6 @@ Multiple commands can be combined with `;` on one line:
 
 ```
 approve 1,3; reject 2; add 'Ethics'; done
-```
-
-## Project Structure
-
-```
-research_assistant/
-├── __init__.py          Package metadata
-├── __main__.py          python -m entry point
-├── cli.py               CLI: argument parsing, user I/O, delegates to Supervisor
-├── config.py            Settings loaded from .env (pydantic-settings)
-├── models.py            All Pydantic v2 data models (inter-agent contracts)
-├── state.py             LangGraph ResearchState TypedDict
-├── graph.py             StateGraph definition: nodes, edges, build_graph()
-├── routing.py           Complexity-aware model router (cheap vs. powerful)
-├── ui.py                Rich console UI: panels, tables, spinners, Markdown
-├── parser.py            Human review command parser
-├── mock.py              Mock LLM for --mock mode
-└── agents/
-    ├── __init__.py
-    ├── base.py          Abstract base agent: structured LLM calls + retry
-    ├── supervisor.py    Supervisor: pipeline orchestration, HITL cycle
-    ├── investigator.py  Subtopic generation (gpt-4o-mini)
-    ├── curator.py       Deep analysis, parallel execution (gpt-4o)
-    └── reporter.py      Report synthesis (gpt-4o)
 ```
 
 ## Data Flow

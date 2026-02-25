@@ -70,7 +70,6 @@ FORMATTING:
 """
 
 
-
 def _format_analyses_for_prompt(analyses: list[CuratedAnalysis]) -> str:
     """Serialise curated analyses as structured source data for the reporter."""
     parts: list[str] = []

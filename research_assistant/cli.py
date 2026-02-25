@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import logging
 import warnings
+
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 from dotenv import load_dotenv
@@ -110,7 +111,6 @@ def main() -> int:
 
     report, elapsed = supervisor.run(
         topic=topic,
-        mock_mode=args.mock,
         collect_human_input=collect_human_input,
         on_status=display_status,
         on_spinner=create_spinner,

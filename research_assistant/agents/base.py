@@ -29,12 +29,10 @@ class BaseAgent(ABC):
     def __init__(self, router: ModelRouter) -> None:
         self._router = router
 
-
     @abstractmethod
     def run(self, **kwargs: Any) -> dict[str, Any]:
         """Execute the agent's task and return a partial state dict."""
         ...
-        
 
     @retry(
         retry=retry_if_exception_type(Exception),
