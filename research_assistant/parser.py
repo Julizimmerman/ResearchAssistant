@@ -30,9 +30,6 @@ class ParseError(Exception):
     """Raised when a command string cannot be understood."""
 
 
-# ── Single-command parsing ───────────────────────────────────────────
-
-
 def parse_single_command(text: str) -> ParsedCommand:
     """Parse one command string into a ``ParsedCommand``.
 
@@ -94,9 +91,6 @@ def _parse_ids(raw: str) -> list[int]:
     return [int(x) for x in re.split(r"[,\s]+", raw.strip()) if x.strip().isdigit()]
 
 
-# ── Multi-command line parsing ───────────────────────────────────────
-
-
 def parse_command_line(line: str) -> list[ParsedCommand]:
     """Parse a line that may contain multiple ``;``-separated commands.
 
@@ -107,9 +101,6 @@ def parse_command_line(line: str) -> list[ParsedCommand]:
     if not segments:
         raise ParseError("Empty input — type 'done' to finish or 'approve all' to approve everything.")
     return [parse_single_command(seg) for seg in segments]
-
-
-# ── ID validation helper ────────────────────────────────────────────
 
 
 def validate_ids(ids: list[int], valid_ids: set[int]) -> list[str]:
