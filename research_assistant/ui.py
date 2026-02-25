@@ -36,9 +36,6 @@ logger = logging.getLogger(__name__)
 
 console = Console()
 
-# ── Welcome / Banner ─────────────────────────────────────────────────
-
-
 def display_welcome() -> None:
     """Show a friendly welcome banner and greet the user."""
     console.print()
@@ -75,9 +72,6 @@ def prompt_for_topic() -> str:
         return topic
 
 
-# ── Progress / Spinners ─────────────────────────────────────────────
-
-
 def create_spinner(message: str) -> Any:
     """Return a ``console.status`` context manager for a spinner."""
     return console.status(f"[bold green]{message}[/bold green]", spinner="dots")
@@ -86,9 +80,6 @@ def create_spinner(message: str) -> Any:
 def display_status(message: str) -> None:
     """Print a brief, friendly status update."""
     console.print(f"\n{message}\n")
-
-
-# ── Subtopic Review ──────────────────────────────────────────────────
 
 
 def _render_subtopics_table(
@@ -160,9 +151,6 @@ def _display_commands_help() -> None:
         )
     )
     console.print()
-
-
-# ── Human-input collection loop ─────────────────────────────────────
 
 
 def collect_human_input(subtopics: list[Subtopic]) -> HumanDecision:
@@ -319,9 +307,6 @@ def collect_human_input(subtopics: list[Subtopic]) -> HumanDecision:
     return decision
 
 
-# ── Final Report ─────────────────────────────────────────────────────
-
-
 def display_final_report(report: FinalReport) -> None:
     """Render the final report section-by-section with styled Rich components."""
     def _pad(renderable: object) -> Padding:
@@ -381,9 +366,6 @@ def _fallback_markdown(report: FinalReport) -> str:
     return "\n".join(lines)
 
 
-# ── Execution Summary ────────────────────────────────────────────────
-
-
 def display_session_complete(elapsed_seconds: float) -> None:
     """Show a friendly wrap-up message."""
     console.print(
@@ -395,9 +377,6 @@ def display_session_complete(elapsed_seconds: float) -> None:
         )
     )
     console.print()
-
-
-# ── Topic validation ─────────────────────────────────────────────────
 
 
 def validate_topic(topic: str) -> str | None:
