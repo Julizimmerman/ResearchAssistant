@@ -1,0 +1,12 @@
+.env
+.llm_cache.db
+__pycache__/
+*.pyc
+*.pyo
+.cache/
+report_*.md
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
