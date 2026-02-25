@@ -13,9 +13,6 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 
-# ── Investigator Output ──────────────────────────────────────────────
-
-
 class Subtopic(BaseModel):
     """A research subtopic identified by the Investigator agent."""
 
@@ -43,9 +40,6 @@ class InvestigatorOutput(BaseModel):
         ...,
         description="Brief explanation of the research decomposition strategy",
     )
-
-
-# ── Human Decision ───────────────────────────────────────────────────
 
 
 class SubtopicAction(str, Enum):
@@ -86,9 +80,6 @@ class HumanDecision(BaseModel):
     def all_active_subtopics(self) -> list[ReviewedSubtopic | Subtopic]:
         """Every subtopic that should proceed to the Curator."""
         return list(self.approved_subtopics) + list(self.added_subtopics)
-
-
-# ── Curator Output ───────────────────────────────────────────────────
 
 
 class KeyFinding(BaseModel):
@@ -133,8 +124,6 @@ class CuratorOutput(BaseModel):
     analysis: CuratedAnalysis
 
 
-# ── Reporter Output ──────────────────────────────────────────────────
-
 
 class ReportSection(BaseModel):
     """A single section of the final Markdown report."""
@@ -162,5 +151,3 @@ class FinalReport(BaseModel):
         default="",
         description="Complete report as a single Markdown string (built post-LLM)",
     )
-
-
