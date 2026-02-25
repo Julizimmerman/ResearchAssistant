@@ -22,20 +22,9 @@ from research_assistant.models import (
 class ResearchState(TypedDict):
     """Shared state flowing through the research-assistant graph."""
 
-    # ── Input ────────────────────────────────────────────────────────
     topic: str
-
-    # ── Investigator output ──────────────────────────────────────────
     subtopics: list[Subtopic]
-
-    # ── Human-review output ──────────────────────────────────────────
     human_decision: HumanDecision | None
-
-    # ── Curator output (append-reducer) ──────────────────────────────
     curated_analyses: Annotated[list[CuratedAnalysis], add]
-
-    # ── Reporter output ──────────────────────────────────────────────
     final_report: FinalReport | None
-
-    # ── Control ──────────────────────────────────────────────────────
     mock_mode: bool
