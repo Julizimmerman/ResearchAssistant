@@ -1,4 +1,4 @@
-"""Cost-aware model routing.
+"""Model routing.
 
 Each agent declares a complexity level, and the ``ModelRouter`` maps that
 level to the appropriate Azure OpenAI deployment.  Simple tasks get a
@@ -13,7 +13,6 @@ from typing import Any
 from langchain_openai import AzureChatOpenAI
 
 from research_assistant.config import Settings
-from research_assistant.cost import CostTracker
 
 
 class Complexity(str, Enum):
@@ -37,12 +36,10 @@ class ModelRouter:
     def __init__(
         self,
         settings: Settings,
-        cost_tracker: CostTracker,
         *,
         mock_mode: bool = False,
     ) -> None:
         self._settings = settings
-        self._cost_tracker = cost_tracker
         self._mock_mode = mock_mode
         self._deployment_map: dict[Complexity, str] = {
             Complexity.LOW: settings.AZURE_OPENAI_DEPLOYMENT_CHEAP,
@@ -50,11 +47,6 @@ class ModelRouter:
         }
 
     # ── Public API ───────────────────────────────────────────────────
-
-    @property
-    def cost_tracker(self) -> CostTracker:
-        """Expose the shared cost tracker so agents can record usage."""
-        return self._cost_tracker
 
     def get_model_name(self, agent_name: str) -> str:
         """Return the deployment name assigned to *agent_name*."""
@@ -78,15 +70,11 @@ class ModelRouter:
         )
 
     def get_structured_llm(self, agent_name: str, output_schema: type) -> Any:
-        """Return an LLM bound to *output_schema* via ``with_structured_output``.
-
-        Uses ``include_raw=True`` so callers receive both the parsed Pydantic
-        object and the raw ``AIMessage`` (needed for token-usage metadata).
-        """
+        """Return an LLM bound to *output_schema* via ``with_structured_output``."""
         if self._mock_mode:
             from research_assistant.mock import create_mock_llm
 
             return create_mock_llm(agent_name)
 
         llm = self.get_llm(agent_name)
-        return llm.with_structured_output(output_schema, include_raw=True)
+        return llm.with_structured_output(output_schema)

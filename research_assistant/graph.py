@@ -1,11 +1,9 @@
 """LangGraph state graph — defines the research pipeline and agent registry.
 
-The graph topology itself serves as the **Supervisor Agent**: it encodes
-the linear orchestration flow (investigate → human_review → curate → report)
-as declarative edges, eliminating the need for a separate supervisor node.
-
-Node functions are thin wrappers that bridge LangGraph's
-``(state) -> partial_state`` contract with the agent classes.
+Contains the graph definition (nodes, edges, build_graph()) used by the
+SupervisorAgent to execute the pipeline.  Node functions are thin wrappers
+that bridge LangGraph's ``(state) -> partial_state`` contract with the
+agent classes.
 """
 
 from __future__ import annotations

@@ -12,7 +12,6 @@ from operator import add
 from typing import Annotated, TypedDict
 
 from research_assistant.models import (
-    CostRecord,
     CuratedAnalysis,
     FinalReport,
     HumanDecision,
@@ -37,9 +36,6 @@ class ResearchState(TypedDict):
 
     # ── Reporter output ──────────────────────────────────────────────
     final_report: FinalReport | None
-
-    # ── Cost tracking (append-reducer) ───────────────────────────────
-    cost_records: Annotated[list[CostRecord], add]
 
     # ── Control ──────────────────────────────────────────────────────
     mock_mode: bool

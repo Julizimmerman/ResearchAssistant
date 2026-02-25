@@ -186,29 +186,16 @@ def _mock_reporter(topic: str, num_sections: int) -> FinalReport:
 
 # ── Mock LLM class ───────────────────────────────────────────────────
 
-# Fake token-usage metadata so cost tracking works in mock mode.
-_MOCK_USAGE = {
-    "prompt_tokens": 250,
-    "completion_tokens": 500,
-    "total_tokens": 750,
-}
-
 
 class MockStructuredLLM:
-    """Drop-in replacement for ``ChatOpenAI.with_structured_output(...)``.
-
-    Returns pre-built Pydantic objects and includes fake token metadata
-    so the cost-tracking pipeline functions identically in mock mode.
-    """
+    """Drop-in replacement for ``ChatOpenAI.with_structured_output(...)``."""
 
     def __init__(self, agent_name: str) -> None:
         self._agent_name = agent_name
 
-    def invoke(self, messages: list[dict[str, str]], **kwargs: Any) -> dict[str, Any]:
-        """Return ``{"raw": AIMessage-like, "parsed": PydanticModel}``."""
-        parsed = self._build_response(messages)
-        raw = _FakeAIMessage(usage_metadata=_MOCK_USAGE)
-        return {"raw": raw, "parsed": parsed}
+    def invoke(self, messages: list[dict[str, str]], **kwargs: Any) -> Any:
+        """Return a pre-built Pydantic object."""
+        return self._build_response(messages)
 
     def with_structured_output(self, schema: type, **kwargs: Any) -> "MockStructuredLLM":
         """No-op — the mock already returns structured data."""
@@ -235,14 +222,6 @@ class MockStructuredLLM:
             return _mock_reporter(topic, 3)
 
         return _MOCK_INVESTIGATOR  # fallback
-
-
-class _FakeAIMessage:
-    """Minimal stand-in for ``langchain_core.messages.AIMessage``."""
-
-    def __init__(self, usage_metadata: dict[str, int]) -> None:
-        self.usage_metadata = usage_metadata
-        self.response_metadata = {"token_usage": usage_metadata}
 
 
 # ── Factory ──────────────────────────────────────────────────────────

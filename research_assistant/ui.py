@@ -20,7 +20,6 @@ from rich.table import Table
 from rich.text import Text
 
 from research_assistant.models import (
-    CostRecord,
     FinalReport,
     HumanDecision,
     ReviewedSubtopic,
@@ -382,69 +381,14 @@ def _fallback_markdown(report: FinalReport) -> str:
     return "\n".join(lines)
 
 
-# ── Cost Summary (written to file, not shown in chat) ────────────────
-
-
-def write_cost_summary(cost_records: list[CostRecord], file_path: str) -> None:
-    """Write a cost summary to a text file (not shown in the console)."""
-    if not cost_records:
-        return
-
-    lines: list[str] = ["Cost Summary", "=" * 50, ""]
-    total_cost = 0.0
-    total_tokens = 0
-
-    lines.append(f"{'Agent':<15} {'Model':<20} {'Tokens':>8} {'Cost (USD)':>12}")
-    lines.append("-" * 60)
-
-    for r in cost_records:
-        lines.append(
-            f"{r.agent_name:<15} {r.model_name:<20} {r.total_tokens:>8,} "
-            f"${r.estimated_cost_usd:>11.6f}"
-        )
-        total_cost += r.estimated_cost_usd
-        total_tokens += r.total_tokens
-
-    lines.append("-" * 60)
-    lines.append(f"{'TOTAL':<15} {'':<20} {total_tokens:>8,} ${total_cost:>11.6f}")
-    lines.append("")
-
-    # Per-model breakdown
-    model_stats: dict[str, dict[str, int | float]] = {}
-    for r in cost_records:
-        if r.model_name not in model_stats:
-            model_stats[r.model_name] = {"calls": 0, "tokens": 0, "cost": 0.0}
-        model_stats[r.model_name]["calls"] += 1
-        model_stats[r.model_name]["tokens"] += r.total_tokens
-        model_stats[r.model_name]["cost"] += r.estimated_cost_usd
-
-    lines.append("Per-Model Breakdown")
-    lines.append("-" * 40)
-    for model, stats in model_stats.items():
-        lines.append(
-            f"  {model}: {stats['calls']} call(s), "
-            f"{stats['tokens']:,} tokens, ${stats['cost']:.6f}"
-        )
-
-    Path(file_path).write_text("\n".join(lines), encoding="utf-8")
-
-
 # ── Execution Summary ────────────────────────────────────────────────
 
 
-def display_session_complete(
-    report_path: str | None,
-    elapsed_seconds: float,
-) -> None:
+def display_session_complete(elapsed_seconds: float) -> None:
     """Show a friendly wrap-up message."""
-    parts: list[str] = []
-    if report_path:
-        parts.append(f"Report saved to [bold]{report_path}[/bold]")
-    parts.append(f"Completed in {elapsed_seconds:.1f}s")
-
     console.print(
         Panel(
-            "\n".join(parts),
+            f"Completed in {elapsed_seconds:.1f}s",
             title="[bold blue]All done![/bold blue]",
             border_style="blue",
             padding=(1, 2),

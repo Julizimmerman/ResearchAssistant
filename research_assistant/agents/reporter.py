@@ -16,31 +16,59 @@ from research_assistant.models import CuratedAnalysis, FinalReport
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = """\
-You are a professional research report writer. You will receive structured \
-research data (facts, evidence, findings) collected by a curator. Your job is \
-to WRITE AN ORIGINAL REPORT — do not copy or paraphrase the curator's text. \
-Use the structured data as your source of truth, then write in your own voice.
+You are a senior research report writer producing a comprehensive, \
+publication-quality report. You will receive structured research data \
+(findings, evidence, analysis) collected by a research curator. Your job \
+is to transform this raw analytical material into a polished, cohesive \
+research document written entirely in your own voice.
 
-Rules:
-- DO NOT copy curator sentences verbatim. Transform facts into flowing prose.
-- Each subtopic section must EXPAND on the curator data: add context, \
-  explain significance, connect ideas, and draw insights the data implies.
-- The executive summary must synthesise ACROSS all subtopics — not describe \
-  each one individually.
-- The conclusion must identify cross-cutting themes and tensions between \
-  subtopics — not restate each section.
-- Use Markdown formatting (headings, bullet points, bold, tables) for \
-  readability.
+CRITICAL RULES:
+- NEVER copy or closely paraphrase the curator's text. Use the data as \
+  source material, then write original prose.
+- Every section must ADD VALUE beyond what the curator provided: add \
+  context, explain significance, draw connections the data implies, and \
+  surface insights that emerge from looking at the evidence as a whole.
 
-The report MUST include:
-1. A compelling, specific title
-2. An executive summary (2–3 paragraphs) synthesising the whole
-3. One detailed section per subtopic — written as original analysis, not a \
-   reformatting of curator notes
-4. A conclusion that draws cross-cutting insights
-5. References (illustrative if necessary)
-6. A brief methodology note\
+STRUCTURE (all sections required):
+
+1. TITLE: Must be specific and compelling. Not "Research Report on X" but \
+   something that captures the key insight or tension discovered. Example: \
+   instead of "Research Report: Artificial Intelligence" write something like \
+   "The Double-Edged Sword: How AI's Rapid Advancement Outpaces the \
+   Frameworks Meant to Govern It".
+
+2. EXECUTIVE SUMMARY (3–4 paragraphs): This is the most important section. \
+   It must synthesise ACROSS all subtopics into a unified narrative — not \
+   summarise each subtopic sequentially. What is the overarching story? \
+   What are the key tensions? What should the reader take away? A busy \
+   executive who reads only this section should understand the full picture.
+
+3. SUBTOPIC SECTIONS (one per subtopic, 3–5 paragraphs each): Each section \
+   should read as a self-contained analytical essay. Open with context, \
+   develop the key arguments with evidence, address counterpoints, and \
+   close with implications. Use smooth transitions between sections to \
+   build a narrative arc across the report.
+
+4. CONCLUSION (2–3 paragraphs): Identify cross-cutting themes and tensions \
+   BETWEEN subtopics — do not restate individual sections. What patterns \
+   emerge? What tradeoffs must be navigated? What remains unresolved? \
+   End with a forward-looking perspective.
+
+5. REFERENCES: List sources cited or referenced. Use illustrative academic \
+   and institutional sources where appropriate.
+
+6. METHODOLOGY NOTE (brief): Explain that this report was produced using a \
+   multi-agent AI research pipeline with human-in-the-loop validation, and \
+   briefly describe the roles of each agent.
+
+FORMATTING:
+- Use Markdown: headings (##), bold for key terms, bullet points only when \
+  listing discrete items (not as a substitute for prose).
+- Prefer flowing paragraphs over bullet-point lists for analytical content.
+- Aim for depth and substance — a complete report should be thorough enough \
+  to be genuinely informative to someone unfamiliar with the topic.\
 """
+
 
 
 def _format_analyses_for_prompt(analyses: list[CuratedAnalysis]) -> str:
@@ -123,11 +151,7 @@ class ReporterAgent(BaseAgent):
         curated_analyses: list[CuratedAnalysis],
         **kwargs: Any,
     ) -> dict[str, Any]:
-        """Produce the final report.
-
-        Returns a partial state dict with keys ``final_report`` and
-        ``cost_records``.
-        """
+        """Produce the final report."""
         logger.info(
             "Reporter starting — synthesising %d analyses", len(curated_analyses)
         )
@@ -146,20 +170,10 @@ class ReporterAgent(BaseAgent):
             },
         ]
 
-        parsed, cost_record = self._call_structured_llm(
-            messages,
-            output_schema=FinalReport,
-            task_description=f"Report: {topic}",
-        )
+        parsed = self._call_structured_llm(messages, output_schema=FinalReport)
 
-        # Build the full Markdown from the structured report.
         raw_md = build_raw_markdown(parsed)
-
-        # Attach raw_markdown by reconstructing with the field set.
         report = parsed.model_copy(update={"raw_markdown": raw_md})
 
         logger.info("Reporter finished — report has %d sections", len(report.sections))
-        return {
-            "final_report": report,
-            "cost_records": [cost_record],
-        }
+        return {"final_report": report}

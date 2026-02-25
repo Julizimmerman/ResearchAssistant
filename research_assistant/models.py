@@ -164,16 +164,3 @@ class FinalReport(BaseModel):
     )
 
 
-# ── Cost Tracking ────────────────────────────────────────────────────
-
-
-class CostRecord(BaseModel):
-    """Token-usage and cost record for a single LLM invocation."""
-
-    agent_name: str
-    model_name: str
-    prompt_tokens: int = 0
-    completion_tokens: int = 0
-    total_tokens: int = 0
-    estimated_cost_usd: float = 0.0
-    task_description: str = ""

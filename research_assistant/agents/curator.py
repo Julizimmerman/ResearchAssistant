@@ -14,7 +14,6 @@ from typing import Any
 from research_assistant.agents.base import BaseAgent
 from research_assistant.models import (
     CuratedAnalysis,
-    CostRecord,
     CuratorOutput,
     HumanDecision,
     ReviewedSubtopic,
@@ -24,21 +23,56 @@ from research_assistant.models import (
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = """\
-You are a research data curator. Your job is to extract and organise the most \
-important FACTS and EVIDENCE about a subtopic — NOT to write prose. The output \
-will be used as raw material by a separate agent who will write the actual report.
+You are a senior research analyst performing deep, substantive analysis on a \
+specific subtopic within a broader research project. Your output will be used \
+as the primary source material for a final research report, so depth and \
+nuance are critical.
 
-Provide compact, structured output:
-- summary: One concise sentence stating the core finding (max 30 words)
-- key_findings: Specific facts, data points, statistics, or conclusions — each \
-  as a short statement with a confidence level and the type of evidence behind it
-- pros: Short bullet-point strengths or supporting arguments (no prose)
-- cons: Short bullet-point weaknesses or counter-arguments (no prose)
-- connections: How this subtopic links to adjacent subtopics (keywords only)
-- implications: One sentence on what this means for the broader topic
-- gaps: Specific unanswered questions or missing evidence
+Your analysis must go far beyond surface-level summaries. You are expected to \
+reason carefully, explore multiple perspectives, identify tensions and \
+tradeoffs, and produce the kind of insight that only comes from thorough \
+analytical thinking.
 
-Be terse, factual, and data-driven. Avoid narrative sentences.\
+Guidelines for each field:
+
+- summary: Write 3–5 sentences that capture the essence of the subtopic. \
+  Do not just define it — explain its current state, why it matters now, \
+  and what makes it complex or contested.
+
+- key_findings: Each finding must be a full paragraph (3–4 sentences). \
+  State the finding, explain the reasoning or mechanism behind it, cite \
+  the type of evidence that supports it (e.g. empirical studies, expert \
+  consensus, case studies, statistical trends), and note any caveats or \
+  conditions under which the finding holds. Aim for 3–5 findings that \
+  cover different dimensions of the subtopic.
+
+- pros: Each pro should be 2–3 sentences. Don't just name the strength — \
+  explain WHY it is a strength, what evidence supports it, and who \
+  benefits from it. Think about economic, social, technical, and ethical \
+  dimensions.
+
+- cons: Each con should be 2–3 sentences. Explain the mechanism of the \
+  weakness, who is affected, how severe the risk is, and whether it is \
+  inherent or mitigable. Avoid vague criticisms.
+
+- connections: For each connection, explain HOW and WHY this subtopic \
+  relates to others in the research. What causal links, dependencies, \
+  tensions, or synergies exist? A good connection reveals something \
+  non-obvious about how the subtopics interact.
+
+- implications: Write a full paragraph (4–6 sentences) exploring the \
+  consequences and second-order effects. What does this analysis mean \
+  for the broader topic? What decisions or actions does it inform? \
+  What could go wrong if these implications are ignored?
+
+- gaps: For each gap, explain why it matters and what filling it would \
+  unlock. A good gap statement identifies not just what is missing, but \
+  why the absence is consequential for understanding or decision-making.
+
+Think like a senior consultant presenting to an executive audience: every \
+claim must be substantiated, every argument must be developed, and the \
+analysis must reveal insights that are not immediately obvious from a \
+surface reading of the topic.\
 """
 
 
@@ -49,8 +83,8 @@ class CuratorAgent(BaseAgent):
 
     def _curate_one(
         self, topic: str, subtopic: ReviewedSubtopic | Subtopic
-    ) -> tuple[CuratedAnalysis, CostRecord] | None:
-        """Curate a single subtopic. Returns (analysis, cost) or None on failure."""
+    ) -> CuratedAnalysis | None:
+        """Curate a single subtopic. Returns analysis or None on failure."""
         name = subtopic.name
         description = getattr(subtopic, "description", name)
         messages: list[dict[str, str]] = [
@@ -65,12 +99,8 @@ class CuratorAgent(BaseAgent):
             },
         ]
         try:
-            parsed, cost_record = self._call_structured_llm(
-                messages,
-                output_schema=CuratorOutput,
-                task_description=f"Curate: {name}",
-            )
-            return parsed.analysis, cost_record
+            parsed = self._call_structured_llm(messages, output_schema=CuratorOutput)
+            return parsed.analysis
         except Exception:
             logger.exception("Failed to curate subtopic '%s' — skipping", name)
             return None
@@ -82,16 +112,11 @@ class CuratorAgent(BaseAgent):
         human_decision: HumanDecision,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        """Curate every active subtopic in parallel and return analyses.
-
-        Returns a partial state dict with keys ``curated_analyses`` and
-        ``cost_records``.
-        """
+        """Curate every active subtopic in parallel and return analyses."""
         active = human_decision.all_active_subtopics
         logger.info("Curator starting — %d subtopics to analyse in parallel", len(active))
 
         analyses: list[CuratedAnalysis] = []
-        cost_records: list[CostRecord] = []
 
         with ThreadPoolExecutor(max_workers=len(active)) as executor:
             futures = {
@@ -101,12 +126,7 @@ class CuratorAgent(BaseAgent):
             for future in as_completed(futures):
                 result = future.result()
                 if result is not None:
-                    analysis, cost_record = result
-                    analyses.append(analysis)
-                    cost_records.append(cost_record)
+                    analyses.append(result)
 
         logger.info("Curator finished — %d analyses produced", len(analyses))
-        return {
-            "curated_analyses": analyses,
-            "cost_records": cost_records,
-        }
+        return {"curated_analyses": analyses}
